@@ -1,11 +1,3 @@
-/**
- * Mock Data Generator
- * Produces 5,000 realistic stock records with sector-correlated data:
- * - Large caps → lower beta, higher promoter holding, lower volatility
- * - Sector-specific P/E multiples and beta ranges
- * - Indian market sectors (NSE/BSE universe)
- */
-
 import {
   Stock,
   Sector,
@@ -17,8 +9,6 @@ import {
   CandlestickBar,
   VolumeBar,
 } from '@/types';
-
-// ── Seeded PRNG (Mulberry32) — reproducible results ──────────────────────────
 function mulberry32(seed: number) {
   return () => {
     let t = (seed += 0x6d2b79f5);
@@ -27,22 +17,16 @@ function mulberry32(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-
 let rand = mulberry32(42);
-
 const randBetween = (min: number, max: number) => min + rand() * (max - min);
 const randInt = (min: number, max: number) => Math.floor(randBetween(min, max + 1));
 const choice = <T>(arr: T[]): T => arr[randInt(0, arr.length - 1)];
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-
-/** Box-Muller transform for approximate normal distribution */
 function normalRandom(mean = 0, std = 1): number {
   const u1 = rand();
   const u2 = rand();
   return mean + std * Math.sqrt(-2 * Math.log(u1 + 1e-9)) * Math.cos(2 * Math.PI * u2);
 }
-
-// ── Sector configuration (Indian market) ─────────────────────────────────────
 interface SectorConfig {
   companies: string[];
   industries: string[];
@@ -52,119 +36,167 @@ interface SectorConfig {
   betaStd: number;
   avgROE: number;
   avgPromoterHolding: number;
-  avgMarketCap: number; // ₹ Cr (geometric mean)
+  avgMarketCap: number;
 }
-
 const SECTOR_CONFIG: Record<Sector, SectorConfig> = {
   IT: {
     companies: ['Infotech', 'Digisys', 'Netlogic', 'Codecraft', 'DataWorks'],
     industries: ['Software', 'IT Services', 'BPO', 'Cloud', 'Cybersecurity'],
-    avgPE: 28, peStd: 8, avgBeta: 0.78, betaStd: 0.18,
-    avgROE: 22, avgPromoterHolding: 55, avgMarketCap: 80000,
+    avgPE: 28,
+    peStd: 8,
+    avgBeta: 0.78,
+    betaStd: 0.18,
+    avgROE: 22,
+    avgPromoterHolding: 55,
+    avgMarketCap: 80000,
   },
   Banking: {
     companies: ['Capital Bank', 'Trust Finance', 'Apex Bank', 'Prime Credit', 'Metro Bank'],
     industries: ['Private Banking', 'PSU Banking', 'Microfinance', 'NBFC', 'Payments'],
-    avgPE: 16, peStd: 5, avgBeta: 1.15, betaStd: 0.25,
-    avgROE: 14, avgPromoterHolding: 35, avgMarketCap: 60000,
+    avgPE: 16,
+    peStd: 5,
+    avgBeta: 1.15,
+    betaStd: 0.25,
+    avgROE: 14,
+    avgPromoterHolding: 35,
+    avgMarketCap: 60000,
   },
   Pharma: {
     companies: ['LifeCure', 'BioMed', 'Helix Labs', 'CureTech', 'GenePharma'],
     industries: ['Pharmaceuticals', 'Biotech', 'API', 'Generics', 'Diagnostics'],
-    avgPE: 32, peStd: 12, avgBeta: 0.68, betaStd: 0.2,
-    avgROE: 16, avgPromoterHolding: 60, avgMarketCap: 25000,
+    avgPE: 32,
+    peStd: 12,
+    avgBeta: 0.68,
+    betaStd: 0.2,
+    avgROE: 16,
+    avgPromoterHolding: 60,
+    avgMarketCap: 25000,
   },
   Auto: {
     companies: ['MotorCraft', 'DriveX', 'VehicleTech', 'AutoParts', 'WheelCo'],
     industries: ['Passenger Vehicles', 'Two-Wheelers', 'CV', 'Auto Ancillary', 'EV'],
-    avgPE: 22, peStd: 7, avgBeta: 1.05, betaStd: 0.22,
-    avgROE: 15, avgPromoterHolding: 52, avgMarketCap: 30000,
+    avgPE: 22,
+    peStd: 7,
+    avgBeta: 1.05,
+    betaStd: 0.22,
+    avgROE: 15,
+    avgPromoterHolding: 52,
+    avgMarketCap: 30000,
   },
   FMCG: {
     companies: ['ConsumerBrands', 'NaturalGoods', 'PureLife', 'HomeEssentials', 'DailyNeeds'],
     industries: ['Food Products', 'Personal Care', 'Household', 'Beverages', 'Tobacco'],
-    avgPE: 45, peStd: 12, avgBeta: 0.55, betaStd: 0.15,
-    avgROE: 30, avgPromoterHolding: 65, avgMarketCap: 50000,
+    avgPE: 45,
+    peStd: 12,
+    avgBeta: 0.55,
+    betaStd: 0.15,
+    avgROE: 30,
+    avgPromoterHolding: 65,
+    avgMarketCap: 50000,
   },
   Metal: {
     companies: ['SteelCorp', 'IronWorks', 'AlloyTech', 'MetalFab', 'MiningPro'],
     industries: ['Steel', 'Aluminium', 'Copper', 'Mining', 'Smelting'],
-    avgPE: 14, peStd: 6, avgBeta: 1.35, betaStd: 0.35,
-    avgROE: 12, avgPromoterHolding: 42, avgMarketCap: 20000,
+    avgPE: 14,
+    peStd: 6,
+    avgBeta: 1.35,
+    betaStd: 0.35,
+    avgROE: 12,
+    avgPromoterHolding: 42,
+    avgMarketCap: 20000,
   },
   Energy: {
     companies: ['PowerGen', 'OilIndia', 'GasTech', 'RenewCo', 'FuelPro'],
     industries: ['Oil & Gas', 'Power Generation', 'Renewables', 'Coal', 'LNG'],
-    avgPE: 12, peStd: 5, avgBeta: 0.9, betaStd: 0.25,
-    avgROE: 10, avgPromoterHolding: 50, avgMarketCap: 45000,
+    avgPE: 12,
+    peStd: 5,
+    avgBeta: 0.9,
+    betaStd: 0.25,
+    avgROE: 10,
+    avgPromoterHolding: 50,
+    avgMarketCap: 45000,
   },
   Realty: {
     companies: ['BuildCo', 'RealtyGroup', 'PropDev', 'CityBuilders', 'UrbanSpace'],
     industries: ['Residential', 'Commercial', 'REITs', 'Township', 'Hospitality'],
-    avgPE: 25, peStd: 15, avgBeta: 1.4, betaStd: 0.4,
-    avgROE: 10, avgPromoterHolding: 58, avgMarketCap: 8000,
+    avgPE: 25,
+    peStd: 15,
+    avgBeta: 1.4,
+    betaStd: 0.4,
+    avgROE: 10,
+    avgPromoterHolding: 58,
+    avgMarketCap: 8000,
   },
   Telecom: {
     companies: ['ConnectNet', 'SpeedTel', 'DataLink', 'TowerCo', 'WirelessTech'],
     industries: ['Mobile Services', 'Broadband', 'Tower', 'ISP', 'Satellite'],
-    avgPE: 30, peStd: 20, avgBeta: 0.85, betaStd: 0.2,
-    avgROE: 8, avgPromoterHolding: 60, avgMarketCap: 15000,
+    avgPE: 30,
+    peStd: 20,
+    avgBeta: 0.85,
+    betaStd: 0.2,
+    avgROE: 8,
+    avgPromoterHolding: 60,
+    avgMarketCap: 15000,
   },
   Infrastructure: {
     companies: ['BuildInfra', 'RoadCon', 'BridgeCo', 'PortAuthority', 'AirportDev'],
     industries: ['Roads', 'Ports', 'Airports', 'Power Infra', 'Urban Infra'],
-    avgPE: 20, peStd: 8, avgBeta: 1.1, betaStd: 0.3,
-    avgROE: 12, avgPromoterHolding: 55, avgMarketCap: 10000,
+    avgPE: 20,
+    peStd: 8,
+    avgBeta: 1.1,
+    betaStd: 0.3,
+    avgROE: 12,
+    avgPromoterHolding: 55,
+    avgMarketCap: 10000,
   },
   Media: {
     companies: ['MediaHouse', 'BroadcastCo', 'StreamX', 'PublishPro', 'EntertainTV'],
     industries: ['Broadcasting', 'Print', 'OTT', 'Film', 'Digital Media'],
-    avgPE: 22, peStd: 10, avgBeta: 0.95, betaStd: 0.3,
-    avgROE: 14, avgPromoterHolding: 48, avgMarketCap: 5000,
+    avgPE: 22,
+    peStd: 10,
+    avgBeta: 0.95,
+    betaStd: 0.3,
+    avgROE: 14,
+    avgPromoterHolding: 48,
+    avgMarketCap: 5000,
   },
   Others: {
     companies: ['DiverseCo', 'HoldingGroup', 'ConglomerateX', 'VentureCorp', 'AlphaHoldings'],
     industries: ['Conglomerate', 'Trading', 'Investment', 'Services', 'Specialty'],
-    avgPE: 18, peStd: 10, avgBeta: 1.0, betaStd: 0.3,
-    avgROE: 12, avgPromoterHolding: 45, avgMarketCap: 3000,
+    avgPE: 18,
+    peStd: 10,
+    avgBeta: 1.0,
+    betaStd: 0.3,
+    avgROE: 12,
+    avgPromoterHolding: 45,
+    avgMarketCap: 3000,
   },
 };
-
 const SECTORS = Object.keys(SECTOR_CONFIG) as Sector[];
 const EXCHANGES: ('NSE' | 'BSE')[] = ['NSE', 'BSE'];
-
-// ── Market cap categorisation ─────────────────────────────────────────────────
 function categoriseByMarketCap(mcap: number): MarketCapCategory {
   if (mcap >= 50000) return 'Large Cap';
   if (mcap >= 10000) return 'Mid Cap';
-  if (mcap >= 1000)  return 'Small Cap';
+  if (mcap >= 1000) return 'Small Cap';
   return 'Micro Cap';
 }
-
-// ── Index membership (correlated with market cap) ─────────────────────────────
 function assignIndices(mcap: number): IndexMembership[] {
   if (mcap >= 100000) return ['NIFTY50', 'NIFTY100', 'NIFTY500', 'SENSEX'];
-  if (mcap >= 30000)  return ['NIFTY100', 'NIFTY500'];
-  if (mcap >= 5000)   return rand() > 0.5 ? ['NIFTY500', 'MIDCAP150'] : ['NIFTY500'];
-  if (mcap >= 500)    return ['SMALLCAP250'];
+  if (mcap >= 30000) return ['NIFTY100', 'NIFTY500'];
+  if (mcap >= 5000) return rand() > 0.5 ? ['NIFTY500', 'MIDCAP150'] : ['NIFTY500'];
+  if (mcap >= 500) return ['SMALLCAP250'];
   return [];
 }
-
-// ── Price generation (correlated with market cap) ─────────────────────────────
 function generatePrice(mcap: number): number {
   if (mcap >= 100000) return randBetween(800, 8000);
-  if (mcap >= 20000)  return randBetween(300, 3000);
-  if (mcap >= 5000)   return randBetween(80, 1000);
-  if (mcap >= 500)    return randBetween(20, 400);
+  if (mcap >= 20000) return randBetween(300, 3000);
+  if (mcap >= 5000) return randBetween(80, 1000);
+  if (mcap >= 500) return randBetween(20, 400);
   return randBetween(5, 100);
 }
-
-// ── Symbol generation ─────────────────────────────────────────────────────────
 const symbolSet = new Set<string>();
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
 function generateSymbol(sector: Sector, index: number): string {
-  // Try sector prefix first
   const prefix = sector.slice(0, 2).toUpperCase();
   let sym = '';
   let attempts = 0;
@@ -172,16 +204,13 @@ function generateSymbol(sector: Sector, index: number): string {
     const len = randInt(2, 4);
     let suffix = '';
     for (let i = 0; i < len; i++) suffix += CHARS[randInt(0, 25)];
-    sym = attempts < 5 ? prefix + suffix : suffix + String(index % 99 + 1);
+    sym = attempts < 5 ? prefix + suffix : suffix + String((index % 99) + 1);
     attempts++;
   } while (symbolSet.has(sym));
   symbolSet.add(sym);
   return sym;
 }
-
-// ── Company name generation ───────────────────────────────────────────────────
 const CORP_SUFFIXES = ['Ltd', 'Industries', 'Corp', 'Holdings', 'Group', 'Enterprises'];
-
 function generateCompanyName(sector: Sector, index: number): string {
   const cfg = SECTOR_CONFIG[sector];
   const base = cfg.companies[index % cfg.companies.length];
@@ -189,63 +218,56 @@ function generateCompanyName(sector: Sector, index: number): string {
   const suffix = choice(CORP_SUFFIXES);
   return num === 0 ? `${base} ${suffix}` : `${base} ${num + 1} ${suffix}`;
 }
-
-// ── SMA / RSI helpers ─────────────────────────────────────────────────────────
 function calcSMA(prices: number[], period: number): number {
   if (prices.length < period) return prices[prices.length - 1] ?? 0;
   const slice = prices.slice(-period);
   return slice.reduce((a, b) => a + b, 0) / period;
 }
-
 function calcRSI(prices: number[], period = 14): number {
   if (prices.length < period + 1) return 50;
-  let gains = 0, losses = 0;
+  let gains = 0,
+    losses = 0;
   for (let i = prices.length - period; i < prices.length; i++) {
     const d = prices[i] - prices[i - 1];
-    if (d > 0) gains += d; else losses += Math.abs(d);
+    if (d > 0) gains += d;
+    else losses += Math.abs(d);
   }
   const rs = gains / (losses || 1);
   return clamp(100 - 100 / (1 + rs), 0, 100);
 }
-
-// ── Enum derivations ──────────────────────────────────────────────────────────
 function toBollingerPosition(pct: number): BollingerPosition {
   if (pct > 1) return 'Above';
   if (pct < 0) return 'Below';
   return 'Within';
 }
-
 function toVolumeVsAvg(ratio: number): VolumeVsAvg {
   if (ratio >= 3) return '3x';
   if (ratio >= 2) return '2x';
-  if (ratio > 1)  return 'Above';
+  if (ratio > 1) return 'Above';
   return 'Below';
 }
-
 function toMACDSignal(raw: number): MACDSignal {
   if (raw > 0.55) return 'Bullish';
   if (raw < 0.45) return 'Bearish';
   return 'Neutral';
 }
-
-// ── Geometric Brownian Motion ─────────────────────────────────────────────────
 function gbm(price: number, mu: number, sigma: number, dt: number): number {
   const z = normalRandom();
   return price * Math.exp((mu - 0.5 * sigma * sigma) * dt + sigma * Math.sqrt(dt) * z);
 }
-
-// ── OHLCV candlestick generator ───────────────────────────────────────────────
 export function generateCandlestickData(
   startPrice: number,
   numBars: number,
   startTime: number,
   intervalSeconds: number,
-): { candles: CandlestickBar[]; volumes: VolumeBar[] } {
+): {
+  candles: CandlestickBar[];
+  volumes: VolumeBar[];
+} {
   const localRand = mulberry32(Math.floor(startPrice * 1000));
   const candles: CandlestickBar[] = [];
   const volumes: VolumeBar[] = [];
   let price = startPrice;
-
   for (let i = 0; i < numBars; i++) {
     const time = startTime + i * intervalSeconds;
     const open = price;
@@ -254,7 +276,6 @@ export function generateCandlestickData(
     const close = Math.max(0.01, gbm(open, mu, sigma, 1 / 252));
     const high = Math.max(open, close) * (1 + localRand() * 0.006);
     const low = Math.min(open, close) * (1 - localRand() * 0.006);
-
     candles.push({ time, open, high, low, close });
     volumes.push({
       time,
@@ -265,15 +286,11 @@ export function generateCandlestickData(
   }
   return { candles, volumes };
 }
-
-// ── Main generator ────────────────────────────────────────────────────────────
 export function generateMockStocks(count: number = 5000): Stock[] {
-  rand = mulberry32(42); // reset seed for reproducibility
+  rand = mulberry32(42);
   symbolSet.clear();
   const stocks: Stock[] = [];
-
   for (let i = 0; i < count; i++) {
-    // 1. Deterministic Sector Distribution to match B5.1 weights exactly:
     let sector: Sector = 'Others';
     if (i < 750) {
       sector = 'Banking';
@@ -300,10 +317,7 @@ export function generateMockStocks(count: number = 5000): Stock[] {
     } else {
       sector = 'Others';
     }
-
     const cfg = SECTOR_CONFIG[sector];
-
-    // 2. Deterministic Market Cap Category counts matching B5 exactly:
     let mcCat: MarketCapCategory = 'Micro Cap';
     let marketCap = 250;
     if (i < 100) {
@@ -319,36 +333,29 @@ export function generateMockStocks(count: number = 5000): Stock[] {
       mcCat = 'Micro Cap';
       marketCap = clamp(randBetween(50, 999), 50, 999);
     }
-
-    // 3. Price
     const lastPrice = generatePrice(marketCap);
-    const sigma = (mcCat === 'Large Cap' ? 0.008 : mcCat === 'Mid Cap' ? 0.014 : 0.022)
-      + Math.abs(normalRandom(0, 0.005));
+    const sigma =
+      (mcCat === 'Large Cap' ? 0.008 : mcCat === 'Mid Cap' ? 0.014 : 0.022) +
+      Math.abs(normalRandom(0, 0.005));
     const prevClose = lastPrice * (1 + normalRandom(0, sigma));
     const dayOpen = prevClose * (1 + normalRandom(0, sigma * 0.4));
     const changeAbsolute = lastPrice - prevClose;
     const changePercent = (changeAbsolute / prevClose) * 100;
     const dayHigh = Math.max(lastPrice, dayOpen) * (1 + rand() * 0.012);
     const dayLow = Math.min(lastPrice, dayOpen) * (1 - rand() * 0.012);
-
-    // 4. Volume vs Price Movement: Large daily change -> above-average volume
     const absChangePercent = Math.abs(changePercent);
     const volumeMultiplier = 1 + (absChangePercent / 5) * randBetween(0.5, 1.5);
     const baseVolume = Math.floor(
-      (mcCat === 'Large Cap' ? 5e6 : mcCat === 'Mid Cap' ? 1e6 : 200000)
-      * randBetween(0.3, 3)
-      * volumeMultiplier,
+      (mcCat === 'Large Cap' ? 5e6 : mcCat === 'Mid Cap' ? 1e6 : 200000) *
+        randBetween(0.3, 3) *
+        volumeMultiplier,
     );
     const avgVolume20D = Math.floor(baseVolume * randBetween(0.5, 2));
     const volumeRatio = baseVolume / avgVolume20D;
-
-    // Technical price history (for indicator calculation)
     const priceHistory: number[] = [lastPrice];
     for (let k = 1; k < 210; k++) {
       priceHistory.unshift(gbm(priceHistory[0], 0, sigma, 1 / 252));
     }
-
-    // 5. RSI vs Recent Return: Positive 5-day return -> RSI > 50, Negative -> RSI < 50
     const price5DaysAgo = priceHistory[priceHistory.length - 6] ?? prevClose;
     const return5Day = ((lastPrice - price5DaysAgo) / price5DaysAgo) * 100;
     let rsi14 = calcRSI(priceHistory);
@@ -358,24 +365,20 @@ export function generateMockStocks(count: number = 5000): Stock[] {
       rsi14 = clamp(50 - randBetween(1, 15) - (50 - rsi14) * 0.5, 5, 49);
     }
     if (Math.abs(rsi14 - 50) < 0.1) {
-      rsi14 = rsi14 > 50 ? 51.5 : 48.5; // never exactly 50
+      rsi14 = rsi14 > 50 ? 51.5 : 48.5;
     }
-
-    const sma50  = calcSMA(priceHistory, 50);
+    const sma50 = calcSMA(priceHistory, 50);
     const sma200 = calcSMA(priceHistory, 200);
-    const ema20  = calcSMA(priceHistory, 20) * (1 + normalRandom(0, 0.005));
-
-    // Bollinger Band position
+    const ema20 = calcSMA(priceHistory, 20) * (1 + normalRandom(0, 0.005));
     const sma20 = calcSMA(priceHistory, 20);
     const sliceLast20 = priceHistory.slice(-20);
     const variance = sliceLast20.reduce((a, p) => a + (p - sma20) ** 2, 0) / 20;
     const std = Math.sqrt(variance);
     const bbPct = std > 0 ? (lastPrice - (sma20 - 2 * std)) / (4 * std) : 0.5;
-
-    // 6. Beta vs Market Cap: correlation coefficient ~ -0.3 + specific range boundaries
     let baseBeta = normalRandom(cfg.avgBeta, cfg.betaStd);
-    const logMcapNormalized = (Math.log(marketCap) - Math.log(50)) / (Math.log(2000000) - Math.log(50));
-    baseBeta = baseBeta - 0.3 * (logMcapNormalized - 0.5); // negative correlation with log of marketCap
+    const logMcapNormalized =
+      (Math.log(marketCap) - Math.log(50)) / (Math.log(2000000) - Math.log(50));
+    baseBeta = baseBeta - 0.3 * (logMcapNormalized - 0.5);
     let beta = 1.0;
     if (mcCat === 'Large Cap') {
       beta = clamp(baseBeta, 0.5, 1.2);
@@ -384,10 +387,7 @@ export function generateMockStocks(count: number = 5000): Stock[] {
     } else {
       beta = clamp(baseBeta, 0.4, 1.8);
     }
-
     const atr = lastPrice * sigma * Math.sqrt(14 / 252);
-
-    // 7. Growth & P/E: High revenue growth (> 25%) -> high PE, slow/declining -> low PE
     const revenueGrowthYoY = clamp(normalRandom(12, 15), -30, 80);
     let pe = null;
     if (rand() > 0.08) {
@@ -403,11 +403,8 @@ export function generateMockStocks(count: number = 5000): Stock[] {
         pe = clamp(normalRandom(cfg.avgPE, cfg.peStd), 10, 50);
       }
     }
-
     const roe = clamp(normalRandom(cfg.avgROE, 6), -15, 55);
     const roce = roe * randBetween(0.7, 1.2);
-
-    // 8. Promoter Holding vs Market Cap: Large cap 40%-75%, Micro cap 20%-90%
     let promoterHolding = 50;
     if (mcCat === 'Large Cap') {
       promoterHolding = clamp(normalRandom(55, 8), 40, 75);
@@ -416,8 +413,6 @@ export function generateMockStocks(count: number = 5000): Stock[] {
     } else {
       promoterHolding = clamp(normalRandom(cfg.avgPromoterHolding, 12), 30, 80);
     }
-
-    // 9. Debt/Equity vs Sector: Banking 5-15, IT/FMCG 0-0.5, Infrastructure 0.5-2.0
     let debtToEquity = 0.5;
     if (sector === 'Banking') {
       debtToEquity = clamp(normalRandom(10, 2.5), 5.0, 15.0);
@@ -428,11 +423,8 @@ export function generateMockStocks(count: number = 5000): Stock[] {
     } else {
       debtToEquity = clamp(normalRandom(0.8, 0.4), 0.1, 3.0);
     }
-
-    // 52-week range
     const week52High = lastPrice * (1 + rand() * 0.65);
     const week52Low = lastPrice * (1 - rand() * 0.6);
-
     const stock: Stock = {
       id: `stock-${i}`,
       symbol: generateSymbol(sector, i),
@@ -442,7 +434,6 @@ export function generateMockStocks(count: number = 5000): Stock[] {
       marketCapCategory: mcCat,
       indexMembership: assignIndices(marketCap),
       exchange: choice(EXCHANGES),
-
       lastPrice,
       previousClose: prevClose,
       dayOpen,
@@ -456,7 +447,6 @@ export function generateMockStocks(count: number = 5000): Stock[] {
       week52Low,
       week52HighProximity: clamp(((week52High - lastPrice) / week52High) * 100, 0, 100),
       week52LowProximity: clamp(((lastPrice - week52Low) / (week52Low || 1)) * 100, 0, 1000),
-
       marketCap,
       pe,
       pb: clamp(normalRandom(3, 2), 0.3, 20),
@@ -475,7 +465,6 @@ export function generateMockStocks(count: number = 5000): Stock[] {
       enterpriseValue: marketCap * randBetween(0.8, 1.6),
       evEbitda: clamp(normalRandom(14, 6), 2, 50),
       freeCashFlow: marketCap * normalRandom(0.06, 0.08),
-
       rsi14,
       sma50,
       sma200,
@@ -495,26 +484,19 @@ export function generateMockStocks(count: number = 5000): Stock[] {
       priceVsSMA200: ((lastPrice - sma200) / sma200) * 100,
       priceVsSMA50Signal: lastPrice >= sma50 ? 'Above' : 'Below',
       priceVsSMA200Signal: lastPrice >= sma200 ? 'Above' : 'Below',
-
       isActive: true,
       isWatched: false,
       lastUpdated: Date.now(),
     };
-
     stocks.push(stock);
   }
-
   return stocks;
 }
-
-// ── Singleton cache ───────────────────────────────────────────────────────────
 let cachedUniverse: Stock[] | null = null;
-
 export function getStockUniverse(): Stock[] {
   if (!cachedUniverse) cachedUniverse = generateMockStocks(5000);
   return cachedUniverse;
 }
-
 export function updateCachedStock(symbol: string, updates: Partial<Stock>): void {
   if (!cachedUniverse) return;
   const idx = cachedUniverse.findIndex((s) => s.symbol === symbol);

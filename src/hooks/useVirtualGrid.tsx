@@ -1,28 +1,50 @@
 'use client';
-
 import { useMemo, useCallback } from 'react';
-import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel, SortingState, VisibilityState, OnChangeFn } from '@tanstack/react-table';
+import {
+  createColumnHelper,
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
+  VisibilityState,
+  OnChangeFn,
+} from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Stock } from '@/types';
 import {
-  PriceCell, ChangeCell, VolumeCell, MarketCapCell, RSICell,
-  BadgeCell, MACD_COLORS, BB_COLORS, VOL_COLORS,
-  SymbolCell, CompanyCell, SectorBadgeCell, CapBadgeCell,
-  PeCell, PbCell, RoeCell, RoceCell, PromoterCell,
-  DividendYieldCell, DebtCell, GrowthCell, BetaCell,
-  Week52HighCell, Week52LowCell,
+  PriceCell,
+  ChangeCell,
+  VolumeCell,
+  MarketCapCell,
+  RSICell,
+  BadgeCell,
+  MACD_COLORS,
+  BB_COLORS,
+  VOL_COLORS,
+  SymbolCell,
+  CompanyCell,
+  SectorBadgeCell,
+  CapBadgeCell,
+  PeCell,
+  PbCell,
+  RoeCell,
+  RoceCell,
+  PromoterCell,
+  DividendYieldCell,
+  DebtCell,
+  GrowthCell,
+  BetaCell,
+  Week52HighCell,
+  Week52LowCell,
 } from '@/components/ui/Cells';
 import React from 'react';
-
-// ── Column helper (spec pattern: createColumnHelper) ──────────────────────────
 const columnHelper = createColumnHelper<Stock>();
-
-// ── Column definitions ────────────────────────────────────────────────────────
 function buildColumns(onOpenChart: (symbol: string) => void) {
   return [
     columnHelper.accessor('symbol', {
       header: 'Symbol',
-      size: 85, minSize: 70,
+      size: 85,
+      minSize: 70,
       enableSorting: true,
       sortingFn: 'alphanumeric',
       meta: { filterType: 'text' },
@@ -30,14 +52,16 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('companyName', {
       header: 'Company',
-      size: 170, minSize: 120,
+      size: 170,
+      minSize: 120,
       enableSorting: true,
       sortingFn: 'alphanumeric',
       cell: (info) => <CompanyCell value={info.getValue()} />,
     }),
     columnHelper.accessor('sector', {
       header: 'Sector',
-      size: 110, minSize: 80,
+      size: 110,
+      minSize: 80,
       enableSorting: true,
       sortingFn: 'alphanumeric',
       meta: { filterType: 'select' },
@@ -45,7 +69,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('marketCapCategory', {
       header: 'Cap',
-      size: 80, minSize: 65,
+      size: 80,
+      minSize: 65,
       enableSorting: true,
       sortingFn: 'alphanumeric',
       meta: { filterType: 'select' },
@@ -53,7 +78,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('lastPrice', {
       header: 'LTP',
-      size: 100, minSize: 80,
+      size: 100,
+      minSize: 80,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range', unit: 'INR' },
@@ -61,7 +87,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('changePercent', {
       header: '% Change',
-      size: 90, minSize: 70,
+      size: 90,
+      minSize: 70,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range' },
@@ -69,7 +96,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('volume', {
       header: 'Volume',
-      size: 90, minSize: 70,
+      size: 90,
+      minSize: 70,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range' },
@@ -79,7 +107,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('marketCap', {
       header: 'Mkt Cap',
-      size: 110, minSize: 85,
+      size: 110,
+      minSize: 85,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range', unit: 'Cr' },
@@ -87,7 +116,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('pe', {
       header: 'P/E',
-      size: 65, minSize: 50,
+      size: 65,
+      minSize: 50,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range' },
@@ -95,14 +125,16 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('pb', {
       header: 'P/B',
-      size: 65, minSize: 50,
+      size: 65,
+      minSize: 50,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <PbCell value={info.getValue()} />,
     }),
     columnHelper.accessor('roe', {
       header: 'ROE %',
-      size: 75, minSize: 60,
+      size: 75,
+      minSize: 60,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range' },
@@ -110,14 +142,16 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('roce', {
       header: 'ROCE %',
-      size: 80, minSize: 60,
+      size: 80,
+      minSize: 60,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <RoceCell value={info.getValue()} />,
     }),
     columnHelper.accessor('rsi14', {
       header: 'RSI(14)',
-      size: 70, minSize: 55,
+      size: 70,
+      minSize: 55,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range', min: 0, max: 100 },
@@ -125,7 +159,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('macdSignal', {
       header: 'MACD',
-      size: 80, minSize: 65,
+      size: 80,
+      minSize: 65,
       enableSorting: true,
       sortingFn: 'alphanumeric',
       meta: { filterType: 'select', options: ['Bullish', 'Bearish', 'Neutral'] },
@@ -133,7 +168,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('bollingerPosition', {
       header: 'BB Pos',
-      size: 75, minSize: 60,
+      size: 75,
+      minSize: 60,
       enableSorting: true,
       sortingFn: 'alphanumeric',
       meta: { filterType: 'select', options: ['Above', 'Within', 'Below'] },
@@ -141,7 +177,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('volumeVsAvg', {
       header: 'Vol/Avg',
-      size: 70, minSize: 55,
+      size: 70,
+      minSize: 55,
       enableSorting: true,
       sortingFn: 'alphanumeric',
       meta: { filterType: 'select', options: ['3x', '2x', 'Above', 'Below'] },
@@ -149,7 +186,8 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('promoterHolding', {
       header: 'Promoter',
-      size: 85, minSize: 65,
+      size: 85,
+      minSize: 65,
       enableSorting: true,
       sortingFn: 'basic',
       meta: { filterType: 'range' },
@@ -157,57 +195,62 @@ function buildColumns(onOpenChart: (symbol: string) => void) {
     }),
     columnHelper.accessor('dividendYield', {
       header: 'Div Yld',
-      size: 75, minSize: 60,
+      size: 75,
+      minSize: 60,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <DividendYieldCell value={info.getValue()} />,
     }),
     columnHelper.accessor('debtToEquity', {
       header: 'D/E',
-      size: 60, minSize: 50,
+      size: 60,
+      minSize: 50,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <DebtCell value={info.getValue()} />,
     }),
     columnHelper.accessor('revenueGrowthYoY', {
       header: 'Rev Gr',
-      size: 75, minSize: 60,
+      size: 75,
+      minSize: 60,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <GrowthCell value={info.getValue()} />,
     }),
     columnHelper.accessor('profitGrowthYoY', {
       header: 'PAT Gr',
-      size: 75, minSize: 60,
+      size: 75,
+      minSize: 60,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <GrowthCell value={info.getValue()} />,
     }),
     columnHelper.accessor('beta', {
       header: 'Beta',
-      size: 60, minSize: 50,
+      size: 60,
+      minSize: 50,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <BetaCell value={info.getValue()} />,
     }),
     columnHelper.accessor('week52High', {
       header: '52W H',
-      size: 90, minSize: 70,
+      size: 90,
+      minSize: 70,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <Week52HighCell value={info.getValue()} />,
     }),
     columnHelper.accessor('week52Low', {
       header: '52W L',
-      size: 90, minSize: 70,
+      size: 90,
+      minSize: 70,
       enableSorting: true,
       sortingFn: 'basic',
       cell: (info) => <Week52LowCell value={info.getValue()} />,
     }),
   ];
 }
-
-// ── useVirtualGrid hook ───────────────────────────────────────────────────────
 interface UseVirtualGridOptions {
   stocks: Stock[];
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -217,12 +260,16 @@ interface UseVirtualGridOptions {
   onOpenChart: (symbol: string) => void;
   rowHeight: number;
 }
-
 export function useVirtualGrid({
-  stocks, containerRef, sorting, onSortingChange, columnVisibility, onOpenChart, rowHeight,
+  stocks,
+  containerRef,
+  sorting,
+  onSortingChange,
+  columnVisibility,
+  onOpenChart,
+  rowHeight,
 }: UseVirtualGridOptions) {
   const columns = useMemo(() => buildColumns(onOpenChart), [onOpenChart]);
-
   const table = useReactTable({
     data: stocks,
     columns,
@@ -234,16 +281,13 @@ export function useVirtualGrid({
     enableColumnResizing: true,
     getRowId: (row) => row.symbol,
   });
-
   const rows = table.getRowModel().rows;
-
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => containerRef.current,
-    estimateSize: () => rowHeight,         // fixed height → O(1) scroll calc
-    overscan: 15,                          // 15 rows above/below viewport
-    measureElement: undefined,             // disable variable height measurement
+    estimateSize: () => rowHeight,
+    overscan: 15,
+    measureElement: undefined,
   });
-
   return { table, rows, rowVirtualizer };
 }

@@ -2,19 +2,16 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
-
 const inter = Inter({
   variable: '--font-sans',
   subsets: ['latin'],
   display: 'swap',
 });
-
 const mono = JetBrains_Mono({
   variable: '--font-mono',
   subsets: ['latin'],
   display: 'swap',
 });
-
 export const metadata: Metadata = {
   title: 'Zetheta Screener — Real-Time Stock Screener',
   description:
@@ -26,12 +23,10 @@ export const metadata: Metadata = {
     type: 'website',
   },
 };
-
 export const viewport: Viewport = {
   themeColor: '#0f1117',
   colorScheme: 'dark light',
 };
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>

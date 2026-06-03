@@ -1,40 +1,26 @@
 'use client';
-
 import React, { Component, ErrorInfo } from 'react';
-
 interface Props {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   feature?: string;
 }
-
 interface State {
   hasError: boolean;
   error: Error | null;
 }
-
-/**
- * Feature-level Error Boundary.
- * Wrap each major feature area (DataGrid, Chart, FilterPanel) independently
- * so a crash in one area doesn't bring down the entire screener.
- */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
   }
-
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
-
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Production: replace with Sentry / DataDog / logging service
     console.error(`[ErrorBoundary:${this.props.feature ?? 'unknown'}]`, error, info.componentStack);
   }
-
   handleReset = () => this.setState({ hasError: false, error: null });
-
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
@@ -49,8 +35,6 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-// ── Default fallback UI ────────────────────────────────────────────────────────
 function ErrorFallback({
   error,
   feature,
@@ -64,10 +48,21 @@ function ErrorFallback({
     <div
       role="alert"
       className="flex flex-col items-center justify-center gap-4 p-8 rounded-xl"
-      style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', minHeight: 200 }}
+      style={{
+        background: 'var(--color-bg-surface)',
+        border: '1px solid var(--color-border)',
+        minHeight: 200,
+      }}
     >
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-        style={{ color: 'var(--color-red)', opacity: 0.7 }}>
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        style={{ color: 'var(--color-red)', opacity: 0.7 }}
+      >
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="8" x2="12" y2="12" />
         <line x1="12" y1="16" x2="12.01" y2="16" />

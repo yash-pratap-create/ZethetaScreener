@@ -1,5 +1,4 @@
 import { Sector } from '@/types/stock';
-
 export const SECTORS: Sector[] = [
   'IT',
   'Banking',
