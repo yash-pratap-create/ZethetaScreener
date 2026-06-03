@@ -2,12 +2,10 @@ import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { Watchlist } from '@/types';
-
 interface WatchlistState {
   watchlists: Watchlist[];
   activeWatchlistId: string | null;
 }
-
 interface WatchlistActions {
   createWatchlist: (name: string) => void;
   deleteWatchlist: (id: string) => void;
@@ -19,8 +17,6 @@ interface WatchlistActions {
   toggleWatch: (symbol: string) => void;
   getActiveSymbols: () => string[];
 }
-
-// A5.1: immer(devtools(persist(...))) — spec middleware stack
 export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
   immer(
     devtools(
@@ -36,7 +32,6 @@ export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
             },
           ],
           activeWatchlistId: 'default',
-
           createWatchlist: (name) =>
             set((state) => {
               const id = `wl-${Date.now()}`;
@@ -49,7 +44,6 @@ export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
               });
               state.activeWatchlistId = id;
             }),
-
           deleteWatchlist: (id) =>
             set((state) => {
               const idx = state.watchlists.findIndex((w) => w.id === id);
@@ -58,7 +52,6 @@ export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
                 state.activeWatchlistId = state.watchlists[0]?.id ?? null;
               }
             }),
-
           renameWatchlist: (id, name) =>
             set((state) => {
               const wl = state.watchlists.find((w) => w.id === id);
@@ -67,7 +60,6 @@ export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
                 wl.updatedAt = Date.now();
               }
             }),
-
           addToWatchlist: (id, symbol) =>
             set((state) => {
               const wl = state.watchlists.find((w) => w.id === id);
@@ -76,7 +68,6 @@ export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
                 wl.updatedAt = Date.now();
               }
             }),
-
           removeFromWatchlist: (id, symbol) =>
             set((state) => {
               const wl = state.watchlists.find((w) => w.id === id);
@@ -86,18 +77,15 @@ export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
                 wl.updatedAt = Date.now();
               }
             }),
-
           setActiveWatchlist: (id) =>
             set((state) => {
               state.activeWatchlistId = id;
             }),
-
           isWatched: (symbol) => {
             const { watchlists, activeWatchlistId } = get();
             const wl = watchlists.find((w) => w.id === activeWatchlistId);
             return wl?.symbols.includes(symbol) ?? false;
           },
-
           toggleWatch: (symbol) => {
             const { watchlists, activeWatchlistId } = get();
             const wl = watchlists.find((w) => w.id === activeWatchlistId);
@@ -108,7 +96,6 @@ export const useWatchlistStore = create<WatchlistState & WatchlistActions>()(
               get().addToWatchlist(wl.id, symbol);
             }
           },
-
           getActiveSymbols: () => {
             const { watchlists, activeWatchlistId } = get();
             const wl = watchlists.find((w) => w.id === activeWatchlistId);

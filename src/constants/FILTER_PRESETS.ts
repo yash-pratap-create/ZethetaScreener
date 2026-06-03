@@ -1,5 +1,4 @@
 import { FilterPreset } from '@/types/stock';
-
 export const FILTER_PRESETS: readonly FilterPreset[] = [
   {
     id: 'oversold_rsi',
@@ -83,9 +82,7 @@ export const FILTER_PRESETS: readonly FilterPreset[] = [
     filters: {
       id: 'preset-largecap',
       logic: 'AND',
-      rules: [
-        { type: 'select', field: 'marketCapCategory', values: ['Large Cap'] },
-      ],
+      rules: [{ type: 'select', field: 'marketCapCategory', values: ['Large Cap'] }],
     },
   },
   {

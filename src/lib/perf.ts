@@ -1,12 +1,3 @@
-/**
- * Performance Benchmark Utilities
- *
- * Provides instrumentation for the required benchmarks:
- * - Filter response < 200ms
- * - Sort response < 150ms
- * - WebSocket update latency < 50ms
- */
-
 export interface BenchmarkResult {
   operation: string;
   durationMs: number;
@@ -14,25 +5,24 @@ export interface BenchmarkResult {
   passed: boolean;
   threshold: number;
 }
-
 const THRESHOLDS = {
   filter: 200,
   sort: 150,
   wsUpdate: 50,
-  render: 16.67, // 60fps frame budget
+  render: 16.67,
 } as const;
-
-// ── measure() wraps synchronous operations ────────────────────────────────────
 export function measure<T>(
   operation: keyof typeof THRESHOLDS,
   fn: () => T,
   rowCount?: number,
-): { result: T; benchmark: BenchmarkResult } {
+): {
+  result: T;
+  benchmark: BenchmarkResult;
+} {
   const start = performance.now();
   const result = fn();
   const durationMs = performance.now() - start;
   const threshold = THRESHOLDS[operation];
-
   const benchmark: BenchmarkResult = {
     operation,
     durationMs,
@@ -40,43 +30,37 @@ export function measure<T>(
     passed: durationMs <= threshold,
     threshold,
   };
-
   if (!benchmark.passed && process.env.NODE_ENV === 'development') {
     console.warn(
       `[Perf] ${operation} took ${durationMs.toFixed(2)}ms — exceeds ${threshold}ms threshold`,
       rowCount ? `(${rowCount} rows)` : '',
     );
   }
-
   return { result, benchmark };
 }
-
-// ── measureAsync() wraps async operations (WebSocket, fetch) ─────────────────
 export async function measureAsync<T>(
   operation: keyof typeof THRESHOLDS,
   fn: () => Promise<T>,
-): Promise<{ result: T; benchmark: BenchmarkResult }> {
+): Promise<{
+  result: T;
+  benchmark: BenchmarkResult;
+}> {
   const start = performance.now();
   const result = await fn();
   const durationMs = performance.now() - start;
   const threshold = THRESHOLDS[operation];
-
   const benchmark: BenchmarkResult = {
     operation,
     durationMs,
     passed: durationMs <= threshold,
     threshold,
   };
-
   return { result, benchmark };
 }
-
-// ── Frame-rate measurement using requestAnimationFrame ────────────────────────
 export class FPSMonitor {
   private frames: number[] = [];
   private rafId: number | null = null;
   private lastTime = 0;
-
   start() {
     this.frames = [];
     this.lastTime = performance.now();
@@ -88,8 +72,11 @@ export class FPSMonitor {
     };
     this.rafId = requestAnimationFrame(tick);
   }
-
-  stop(): { avgFPS: number; minFPS: number; dropped: number } {
+  stop(): {
+    avgFPS: number;
+    minFPS: number;
+    dropped: number;
+  } {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.frames.length === 0) return { avgFPS: 0, minFPS: 0, dropped: 0 };
     const avg = this.frames.reduce((a, b) => a + b, 0) / this.frames.length;
@@ -98,16 +85,12 @@ export class FPSMonitor {
     return { avgFPS: Math.round(avg), minFPS: Math.round(min), dropped };
   }
 }
-
-// ── WebSocket latency tracker ────────────────────────────────────────────────
 export class WSLatencyTracker {
   private timestamps = new Map<string, number>();
   private latencies: number[] = [];
-
   markSent(id: string) {
     this.timestamps.set(id, performance.now());
   }
-
   markReceived(id: string) {
     const sent = this.timestamps.get(id);
     if (sent) {
@@ -115,7 +98,6 @@ export class WSLatencyTracker {
       this.timestamps.delete(id);
     }
   }
-
   getStats() {
     if (this.latencies.length === 0) return null;
     const avg = this.latencies.reduce((a, b) => a + b, 0) / this.latencies.length;

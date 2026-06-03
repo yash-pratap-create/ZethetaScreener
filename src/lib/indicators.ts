@@ -1,11 +1,3 @@
-/**
- * Technical Indicators — all calculations implemented from scratch
- * as required by spec A3.2. No third-party indicator libraries.
- *
- * Exported functions are pure, stateless, and testable independently.
- */
-
-// ── Type definitions ──────────────────────────────────────────────────────────
 export interface OHLCVBar {
   time: number;
   open: number;
@@ -14,16 +6,26 @@ export interface OHLCVBar {
   close: number;
   volume?: number;
 }
-
-export interface LinePoint { time: number; value: number }
-export interface BandPoint { time: number; upper: number; middle: number; lower: number }
-export interface RSIPoint  { time: number; value: number }
-export interface VolumeProfileBucket { priceLevel: number; volume: number; buyVolume: number; sellVolume: number }
-
-// ── 1. Simple Moving Average (SMA) ────────────────────────────────────────────
-/**
- * SMA(n) = (1/n) * Σ(close[i-n+1 .. i])
- */
+export interface LinePoint {
+  time: number;
+  value: number;
+}
+export interface BandPoint {
+  time: number;
+  upper: number;
+  middle: number;
+  lower: number;
+}
+export interface RSIPoint {
+  time: number;
+  value: number;
+}
+export interface VolumeProfileBucket {
+  priceLevel: number;
+  volume: number;
+  buyVolume: number;
+  sellVolume: number;
+}
 export function calculateSMA(bars: OHLCVBar[], period: number): LinePoint[] {
   const result: LinePoint[] = [];
   for (let i = period - 1; i < bars.length; i++) {
@@ -33,38 +35,20 @@ export function calculateSMA(bars: OHLCVBar[], period: number): LinePoint[] {
   }
   return result;
 }
-
-// ── 2. Exponential Moving Average (EMA) ───────────────────────────────────────
-/**
- * Multiplier k = 2 / (period + 1)
- * EMA[i] = close[i] * k + EMA[i-1] * (1 - k)
- * Seed: first EMA = SMA of first `period` bars
- */
 export function calculateEMA(bars: OHLCVBar[], period: number): LinePoint[] {
   if (bars.length < period) return [];
   const k = 2 / (period + 1);
   const result: LinePoint[] = [];
-
-  // Seed with SMA
   let ema = 0;
   for (let i = 0; i < period; i++) ema += bars[i].close;
   ema /= period;
   result.push({ time: bars[period - 1].time, value: ema });
-
   for (let i = period; i < bars.length; i++) {
     ema = bars[i].close * k + ema * (1 - k);
     result.push({ time: bars[i].time, value: ema });
   }
   return result;
 }
-
-// ── 3. Bollinger Bands ────────────────────────────────────────────────────────
-/**
- * Middle = SMA(20)
- * Upper  = SMA(20) + multiplier * σ(20)
- * Lower  = SMA(20) - multiplier * σ(20)
- * where σ = population standard deviation of closes
- */
 export function calculateBollingerBands(
   bars: OHLCVBar[],
   period = 20,
@@ -85,17 +69,9 @@ export function calculateBollingerBands(
   }
   return result;
 }
-
-// ── 4. RSI (Relative Strength Index) ─────────────────────────────────────────
-/**
- * RS = avgGain / avgLoss over `period` bars (Wilder's smoothing)
- * RSI = 100 - (100 / (1 + RS))
- */
 export function calculateRSI(bars: OHLCVBar[], period = 14): RSIPoint[] {
   if (bars.length < period + 1) return [];
   const result: RSIPoint[] = [];
-
-  // First period: simple averages
   let avgGain = 0;
   let avgLoss = 0;
   for (let i = 1; i <= period; i++) {
@@ -105,7 +81,6 @@ export function calculateRSI(bars: OHLCVBar[], period = 14): RSIPoint[] {
   }
   avgGain /= period;
   avgLoss /= period;
-
   let firstRSI = 100;
   if (avgLoss !== 0) {
     const firstRS = avgGain / avgLoss;
@@ -114,15 +89,12 @@ export function calculateRSI(bars: OHLCVBar[], period = 14): RSIPoint[] {
     firstRSI = 50;
   }
   result.push({ time: bars[period].time, value: firstRSI });
-
-  // Wilder's smoothing for subsequent bars
   for (let i = period + 1; i < bars.length; i++) {
     const delta = bars[i].close - bars[i - 1].close;
     const gain = delta > 0 ? delta : 0;
     const loss = delta < 0 ? Math.abs(delta) : 0;
     avgGain = (avgGain * (period - 1) + gain) / period;
     avgLoss = (avgLoss * (period - 1) + loss) / period;
-    
     let rsiValue = 100;
     if (avgLoss !== 0) {
       const rs = avgGain / avgLoss;
@@ -134,68 +106,44 @@ export function calculateRSI(bars: OHLCVBar[], period = 14): RSIPoint[] {
   }
   return result;
 }
-
-// ── 5. Volume Profile ─────────────────────────────────────────────────────────
-/**
- * Aggregates volume into `buckets` price bins between the period's high and low.
- * Buy volume = bars where close >= open; sell volume = remainder.
- * Used to identify support/resistance zones.
- */
-export function calculateVolumeProfile(
-  bars: OHLCVBar[],
-  buckets = 24,
-): VolumeProfileBucket[] {
+export function calculateVolumeProfile(bars: OHLCVBar[], buckets = 24): VolumeProfileBucket[] {
   if (bars.length === 0) return [];
-
   const highs = bars.map((b) => b.high);
-  const lows  = bars.map((b) => b.low);
+  const lows = bars.map((b) => b.low);
   const priceHigh = Math.max(...highs);
-  const priceLow  = Math.min(...lows);
+  const priceLow = Math.min(...lows);
   const bucketSize = (priceHigh - priceLow) / buckets;
-
   const profile: VolumeProfileBucket[] = Array.from({ length: buckets }, (_, i) => ({
     priceLevel: priceLow + (i + 0.5) * bucketSize,
     volume: 0,
     buyVolume: 0,
     sellVolume: 0,
   }));
-
   for (const bar of bars) {
-    // Distribute bar volume proportionally across the price range it covers
     const barHigh = bar.high;
-    const barLow  = bar.low;
-    const barVol  = bar.volume ?? 0;
+    const barLow = bar.low;
+    const barVol = bar.volume ?? 0;
     const barRange = barHigh - barLow || 1;
     const isBuy = bar.close >= bar.open;
-
     for (let i = 0; i < buckets; i++) {
-      const bucketLow  = priceLow + i * bucketSize;
+      const bucketLow = priceLow + i * bucketSize;
       const bucketHigh = bucketLow + bucketSize;
       const overlap = Math.min(barHigh, bucketHigh) - Math.max(barLow, bucketLow);
       if (overlap <= 0) continue;
       const allocated = barVol * (overlap / barRange);
       profile[i].volume += allocated;
       if (isBuy) profile[i].buyVolume += allocated;
-      else        profile[i].sellVolume += allocated;
+      else profile[i].sellVolume += allocated;
     }
   }
-
   return profile;
 }
-
-// ── MACD (bonus — used internally) ───────────────────────────────────────────
 export interface MACDPoint {
   time: number;
   macd: number;
   signal: number;
   histogram: number;
 }
-
-/**
- * MACD = EMA(12) - EMA(26)
- * Signal = EMA(9) of MACD
- * Histogram = MACD - Signal
- */
 export function calculateMACD(
   bars: OHLCVBar[],
   fastPeriod = 12,
@@ -204,20 +152,14 @@ export function calculateMACD(
 ): MACDPoint[] {
   const fastEMA = calculateEMA(bars, fastPeriod);
   const slowEMA = calculateEMA(bars, slowPeriod);
-
-  // Align by time
   const slowMap = new Map(slowEMA.map((p) => [p.time, p.value]));
   const macdLine = fastEMA
     .filter((p) => slowMap.has(p.time))
     .map((p) => ({ time: p.time, value: p.value - slowMap.get(p.time)! }));
-
   if (macdLine.length < signalPeriod) return [];
-
-  // Signal = EMA(9) of MACD line
   const k = 2 / (signalPeriod + 1);
   let signalEMA = macdLine.slice(0, signalPeriod).reduce((s, p) => s + p.value, 0) / signalPeriod;
   const result: MACDPoint[] = [];
-
   for (let i = signalPeriod - 1; i < macdLine.length; i++) {
     if (i > signalPeriod - 1) {
       signalEMA = macdLine[i].value * k + signalEMA * (1 - k);
@@ -231,15 +173,11 @@ export function calculateMACD(
   }
   return result;
 }
-
-// ── Gaussian random (Box-Muller transform) ────────────────────────────────────
 export function gaussianRandom(): number {
   const u1 = Math.random();
   const u2 = Math.random();
   return Math.sqrt(-2 * Math.log(u1 + 1e-10)) * Math.cos(2 * Math.PI * u2);
 }
-
-// ── Price simulator (spec A4.1) ────────────────────────────────────────────────
 export function simulateNextPrice(
   currentPrice: number,
   volatility = 0.02,

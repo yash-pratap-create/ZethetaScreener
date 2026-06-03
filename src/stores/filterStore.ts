@@ -3,7 +3,6 @@ import { persist, devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { FilterGroup, FilterRule, FilterPreset } from '@/types';
 import { FILTER_PRESETS } from '@/lib/filterEngine';
-
 interface FilterState {
   activeGroup: FilterGroup;
   searchQuery: string;
@@ -11,7 +10,6 @@ interface FilterState {
   isFilterPanelOpen: boolean;
   savedFilters: FilterPreset[];
 }
-
 interface FilterActions {
   addRule: (rule: FilterRule) => void;
   removeRule: (index: number) => void;
@@ -26,16 +24,12 @@ interface FilterActions {
   deleteSavedFilter: (id: string) => void;
   applySavedFilter: (id: string) => void;
 }
-
 export type FilterStore = FilterState & FilterActions;
-
 const DEFAULT_GROUP: FilterGroup = {
   id: 'default',
   logic: 'AND',
   rules: [],
 };
-
-// A5.1: immer(devtools(persist(...))) — spec middleware stack
 export const useFilterStore = create<FilterStore>()(
   immer(
     devtools(
@@ -46,41 +40,34 @@ export const useFilterStore = create<FilterStore>()(
           activePresetId: null,
           isFilterPanelOpen: true,
           savedFilters: [],
-
           addRule: (rule) =>
             set((state) => {
               state.activeGroup.rules.push(rule);
               state.activePresetId = null;
             }),
-
           removeRule: (index) =>
             set((state) => {
               state.activeGroup.rules.splice(index, 1);
               state.activePresetId = null;
             }),
-
           updateRule: (index, rule) =>
             set((state) => {
               state.activeGroup.rules[index] = rule;
               state.activePresetId = null;
             }),
-
           clearAllRules: () =>
             set((state) => {
               state.activeGroup = { ...DEFAULT_GROUP, id: `group-${Date.now()}` };
               state.activePresetId = null;
             }),
-
           setLogic: (logic) =>
             set((state) => {
               state.activeGroup.logic = logic;
             }),
-
           setSearchQuery: (searchQuery) =>
             set((state) => {
               state.searchQuery = searchQuery;
             }),
-
           applyPreset: (presetId) => {
             const preset = FILTER_PRESETS.find((p) => p.id === presetId);
             if (!preset) return;
@@ -93,18 +80,15 @@ export const useFilterStore = create<FilterStore>()(
               state.activePresetId = presetId;
             });
           },
-
           clearPreset: () =>
             set((state) => {
               state.activeGroup = { ...DEFAULT_GROUP, id: `group-${Date.now()}` };
               state.activePresetId = null;
             }),
-
           toggleFilterPanel: () =>
             set((state) => {
               state.isFilterPanelOpen = !state.isFilterPanelOpen;
             }),
-
           saveCurrentFilter: (name, description = '') =>
             set((state) => {
               state.savedFilters.push({
@@ -118,7 +102,6 @@ export const useFilterStore = create<FilterStore>()(
                 },
               });
             }),
-
           deleteSavedFilter: (id) =>
             set((state) => {
               state.savedFilters = state.savedFilters.filter((f) => f.id !== id);
@@ -126,7 +109,6 @@ export const useFilterStore = create<FilterStore>()(
                 state.activePresetId = null;
               }
             }),
-
           applySavedFilter: (id) => {
             set((state) => {
               const preset = state.savedFilters.find((p) => p.id === id);

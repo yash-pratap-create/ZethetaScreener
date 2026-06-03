@@ -1,12 +1,9 @@
 import { useEffect } from 'react';
 import { useUIStore } from '@/stores/uiStore';
-
 export function useKeyboardShortcuts() {
   const { toggleSidebar, isChartOpen, closeChart } = useUIStore();
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
@@ -17,7 +14,6 @@ export function useKeyboardShortcuts() {
         }
         return;
       }
-
       switch (e.key) {
         case '/':
           e.preventDefault();
@@ -32,7 +28,6 @@ export function useKeyboardShortcuts() {
         case 'c':
         case 'C':
           e.preventDefault();
-          // If chart is open, close it. Otherwise, we can't easily open it without a selected symbol
           if (isChartOpen) {
             closeChart();
           }
@@ -45,20 +40,18 @@ export function useKeyboardShortcuts() {
           break;
         case 'ArrowDown':
         case 'ArrowUp':
-          // Arrow keys for grid navigation (scrolling or focus)
           if (isChartOpen) {
             break;
           }
           e.preventDefault();
           const container = document.querySelector('.overflow-auto') as HTMLElement;
           if (container) {
-            const scrollAmount = 36; // row height
+            const scrollAmount = 36;
             container.scrollTop += e.key === 'ArrowDown' ? scrollAmount : -scrollAmount;
           }
           break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar, isChartOpen, closeChart]);
