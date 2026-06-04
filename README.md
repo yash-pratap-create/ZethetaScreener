@@ -1,4 +1,4 @@
-# Zetheta Screener Terminal (Screener Wars)
+# Real Time Stock Screener Terminal (Screener Wars)
 
 A state-of-the-art, high-performance financial screener terminal resembling professional Bloomberg/TradingView interfaces. Designed to track, filter, and analyze 5,000 stocks from the Indian equity market universe in real-time with sub-5ms filter processing speeds and sub-25ms end-to-end WebSocket render latency.
 
