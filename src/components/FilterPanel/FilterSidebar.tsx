@@ -1,12 +1,10 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { useFilterStore } from '@/stores/filterStore';
-import { useWatchlistStore } from '@/stores/watchlistStore';
 import { FILTER_PRESETS } from '@/lib/filterEngine';
-import { FilterRule, NumericStockKeys, SelectStockKeys, BooleanStockKeys } from '@/types';
+import type { FilterRule, NumericStockKeys, Stock } from '@/types';
 import { useRealtimeStore } from '@/stores/realtimeStore';
-import {
-  Sector,
+import type {
   MACDSignal,
   IndexMembership,
   MarketCapCategory,
@@ -16,7 +14,7 @@ import {
 } from '@/types/stock';
 import { SECTORS } from '@/constants/SECTORS';
 const NUMERIC_FIELDS: {
-  id: keyof import('@/types').Stock;
+  id: keyof Stock;
   label: string;
   category: string;
 }[] = [
@@ -102,7 +100,7 @@ type AddMode =
   | 'volumeVsAvg'
   | 'watchlistOnly'
   | 'recentlyUpdated';
-function NumericFilterRow({
+export function NumericFilterRow({
   rule,
   index,
   onUpdate,
@@ -261,7 +259,7 @@ function NumericFilterRow({
     </div>
   );
 }
-function SelectFilterRow({
+export function SelectFilterRow({
   rule,
   index,
   onUpdate,
@@ -334,7 +332,7 @@ function SelectFilterRow({
     </div>
   );
 }
-function BooleanFilterRow({
+export function BooleanFilterRow({
   rule,
   index,
   onUpdate,
@@ -391,7 +389,7 @@ function BooleanFilterRow({
     </div>
   );
 }
-function FilterRuleRow({
+export function FilterRuleRow({
   rule,
   index,
   onUpdate,
