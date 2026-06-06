@@ -1,10 +1,12 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { useFilterStore } from '@/stores/filterStore';
+import { useWatchlistStore } from '@/stores/watchlistStore';
 import { FILTER_PRESETS } from '@/lib/filterEngine';
-import type { FilterRule, NumericStockKeys, Stock } from '@/types';
+import { FilterRule, NumericStockKeys, SelectStockKeys, BooleanStockKeys } from '@/types';
 import { useRealtimeStore } from '@/stores/realtimeStore';
-import type {
+import {
+  Sector,
   MACDSignal,
   IndexMembership,
   MarketCapCategory,
@@ -14,39 +16,39 @@ import type {
 } from '@/types/stock';
 import { SECTORS } from '@/constants/SECTORS';
 const NUMERIC_FIELDS: {
-  id: keyof Stock;
+  id: keyof import('@/types').Stock;
   label: string;
   category: string;
 }[] = [
-  { id: 'marketCap', label: 'Market Capitalisation (Cr)', category: 'Fundamentals' },
-  { id: 'pe', label: 'Price-to-Earnings (P/E)', category: 'Fundamentals' },
-  { id: 'pb', label: 'Price-to-Book (P/B)', category: 'Fundamentals' },
-  { id: 'dividendYield', label: 'Dividend Yield (%)', category: 'Fundamentals' },
-  { id: 'eps', label: 'Earnings Per Share (EPS)', category: 'Fundamentals' },
-  { id: 'roe', label: 'Return on Equity (%)', category: 'Fundamentals' },
-  { id: 'roce', label: 'Return on Capital Employed (%)', category: 'Fundamentals' },
-  { id: 'debtToEquity', label: 'Debt-to-Equity Ratio', category: 'Fundamentals' },
-  { id: 'currentRatio', label: 'Current Ratio', category: 'Fundamentals' },
-  { id: 'promoterHolding', label: 'Promoter Holding (%)', category: 'Fundamentals' },
-  { id: 'revenueGrowthYoY', label: 'Revenue Growth YoY (%)', category: 'Fundamentals' },
-  { id: 'profitGrowthYoY', label: 'Profit Growth YoY (%)', category: 'Fundamentals' },
-  { id: 'lastPrice', label: 'Last Traded Price', category: 'Market Data' },
-  { id: 'week52HighProximity', label: '52-Week High Proximity (%)', category: 'Market Data' },
-  { id: 'week52LowProximity', label: '52-Week Low Proximity (%)', category: 'Market Data' },
-  { id: 'avgVolume20D', label: 'Average Volume (20D)', category: 'Market Data' },
-  { id: 'beta', label: 'Beta', category: 'Market Data' },
-  { id: 'changePercent', label: 'Day Change (%)', category: 'Market Data' },
-  { id: 'volumeRatio', label: 'Volume Ratio', category: 'Market Data' },
-  { id: 'rsi14', label: 'RSI (14)', category: 'Technical' },
-  { id: 'atr', label: 'Average True Range', category: 'Technical' },
-  { id: 'bollingerPct', label: 'Bollinger %B (0-1)', category: 'Technical' },
-  { id: 'adx', label: 'ADX', category: 'Technical' },
-  { id: 'stochasticK', label: 'Stochastic %K', category: 'Technical' },
-  { id: 'cci', label: 'CCI', category: 'Technical' },
-  { id: 'evEbitda', label: 'EV/EBITDA', category: 'Technical' },
-  { id: 'grossMargin', label: 'Gross Margin (%)', category: 'Technical' },
-  { id: 'netMargin', label: 'Net Margin (%)', category: 'Technical' },
-];
+    { id: 'marketCap', label: 'Market Capitalisation (Cr)', category: 'Fundamentals' },
+    { id: 'pe', label: 'Price-to-Earnings (P/E)', category: 'Fundamentals' },
+    { id: 'pb', label: 'Price-to-Book (P/B)', category: 'Fundamentals' },
+    { id: 'dividendYield', label: 'Dividend Yield (%)', category: 'Fundamentals' },
+    { id: 'eps', label: 'Earnings Per Share (EPS)', category: 'Fundamentals' },
+    { id: 'roe', label: 'Return on Equity (%)', category: 'Fundamentals' },
+    { id: 'roce', label: 'Return on Capital Employed (%)', category: 'Fundamentals' },
+    { id: 'debtToEquity', label: 'Debt-to-Equity Ratio', category: 'Fundamentals' },
+    { id: 'currentRatio', label: 'Current Ratio', category: 'Fundamentals' },
+    { id: 'promoterHolding', label: 'Promoter Holding (%)', category: 'Fundamentals' },
+    { id: 'revenueGrowthYoY', label: 'Revenue Growth YoY (%)', category: 'Fundamentals' },
+    { id: 'profitGrowthYoY', label: 'Profit Growth YoY (%)', category: 'Fundamentals' },
+    { id: 'lastPrice', label: 'Last Traded Price', category: 'Market Data' },
+    { id: 'week52HighProximity', label: '52-Week High Proximity (%)', category: 'Market Data' },
+    { id: 'week52LowProximity', label: '52-Week Low Proximity (%)', category: 'Market Data' },
+    { id: 'avgVolume20D', label: 'Average Volume (20D)', category: 'Market Data' },
+    { id: 'beta', label: 'Beta', category: 'Market Data' },
+    { id: 'changePercent', label: 'Day Change (%)', category: 'Market Data' },
+    { id: 'volumeRatio', label: 'Volume Ratio', category: 'Market Data' },
+    { id: 'rsi14', label: 'RSI (14)', category: 'Technical' },
+    { id: 'atr', label: 'Average True Range', category: 'Technical' },
+    { id: 'bollingerPct', label: 'Bollinger %B (0-1)', category: 'Technical' },
+    { id: 'adx', label: 'ADX', category: 'Technical' },
+    { id: 'stochasticK', label: 'Stochastic %K', category: 'Technical' },
+    { id: 'cci', label: 'CCI', category: 'Technical' },
+    { id: 'evEbitda', label: 'EV/EBITDA', category: 'Technical' },
+    { id: 'grossMargin', label: 'Gross Margin (%)', category: 'Technical' },
+    { id: 'netMargin', label: 'Net Margin (%)', category: 'Technical' },
+  ];
 const MACD_SIGNALS: MACDSignal[] = ['Bullish', 'Bearish', 'Neutral'];
 const INDICES: IndexMembership[] = [
   'NIFTY50',
@@ -312,11 +314,10 @@ export function SelectFilterRow({
                   : [...rule.values, opt];
                 onUpdate(index, { ...rule, values: vals });
               }}
-              className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
-                isSelected
+              className={`text-xs px-2.5 py-1 rounded-full border transition-all ${isSelected
                   ? 'border-accent-primary text-accent-primary bg-accent-primary/10'
                   : 'border-border text-text-muted hover:border-border-light'
-              }`}
+                }`}
               style={{
                 borderColor: isSelected ? 'var(--color-accent-primary)' : 'var(--color-border)',
                 color: isSelected ? 'var(--color-accent-primary)' : 'var(--color-text-muted)',
