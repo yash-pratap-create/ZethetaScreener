@@ -9,10 +9,16 @@ A state-of-the-art, high-performance financial screener terminal resembling prof
 ## 📸 Project Screenshots
 
 ### Main Screener Dashboard
-![Bloomberg-style Dashboard](public/terminal_screener_screenshot.png)
+![Main Screener Dashboard](public/screenshot_1.png)
+
+### Preset Configurations and Sidebar Filters
+![Preset Configurations](public/screenshot_2.png)
+
+### Heatmap Sector View
+![Heatmap View](public/screenshot_3.png)
 
 ### Technical Analysis Chart Modal
-![Interactive Candlestick Chart](public/chart_view_screenshot.png)
+![Technical Analysis Chart](public/screenshot_4.png)
 
 ---
 
