@@ -1,26 +1,486 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   TERMINAL DESIGN SYSTEM — Bloomberg / TradingView style
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Base surfaces (true terminal-dark) */
+  --color-bg-base:      #080a0f;
+  --color-bg-surface:   #0d1017;
+  --color-bg-surface-2: #111520;
+  --color-bg-surface-3: #161b27;
+  --color-bg-hover:     #1a2030;
+  --color-bg-pane:      #0a0d13;
+
+  /* ── Borders (hairline, barely visible — Bloomberg style) */
+  --color-border:       #1c2236;
+  --color-border-light: #253048;
+  --color-border-strong:#2e3a55;
+
+  /* ── Text */
+  --color-text-primary:   #c9d1e0;
+  --color-text-secondary: #7a8499;
+  --color-text-muted:     #414d65;
+  --color-text-dim:       #2d3848;
+
+  /* ── Brand accent — TradingView electric blue */
+  --color-accent-primary:   #1e88e5;
+  --color-accent-secondary: #5c6ef0;
+  --color-accent-glow:      rgba(30, 136, 229, 0.18);
+
+  /* ── Financial colours */
+  --color-positive:       #00c853;  /* Bloomberg green */
+  --color-positive-dim:   rgba(0, 200, 83, 0.10);
+  --color-positive-glow:  rgba(0, 200, 83, 0.25);
+  --color-negative:       #ff1744;  /* Bloomberg red */
+  --color-negative-dim:   rgba(255, 23, 68, 0.10);
+  --color-negative-glow:  rgba(255, 23, 68, 0.25);
+  --color-neutral:        #546e7a;
+
+  /* Keep legacy aliases for compatibility */
+  --color-green:     var(--color-positive);
+  --color-green-dim: var(--color-positive-dim);
+  --color-red:       var(--color-negative);
+  --color-red-dim:   var(--color-negative-dim);
+  --color-yellow:    #f9a825;
+
+  /* ── Shadows */
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.6);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.7);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.8);
+  --shadow-glow: 0 0 20px rgba(30,136,229,0.25);
+
+  /* ── Radius (tighter — more terminal) */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+
+  /* ── Transitions */
+  --transition-fast: 100ms ease;
+  --transition-base: 180ms ease;
+  --transition-slow: 320ms ease;
+
+  /* ── Typography scale */
+  --font-size-xs:  10px;
+  --font-size-sm:  11px;
+  --font-size-base:12px;
+  --font-size-md:  13px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Light mode overrides */
+[data-theme="light"] {
+  --color-bg-base:      #f0f3fa;
+  --color-bg-surface:   #ffffff;
+  --color-bg-surface-2: #f5f7fc;
+  --color-bg-surface-3: #eaecf4;
+  --color-bg-hover:     #e3e8f5;
+  --color-bg-pane:      #f8faff;
+
+  --color-border:       #d8dce8;
+  --color-border-light: #e4e8f4;
+  --color-border-strong:#c4cad8;
+
+  --color-text-primary:   #1a1f35;
+  --color-text-secondary: #4a5278;
+  --color-text-muted:     #8088a8;
+  --color-text-dim:       #b0b8cc;
+
+  --color-accent-glow:  rgba(30, 136, 229, 0.08);
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.07);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.10);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.14);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESET
+   ═══════════════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 13px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+  overflow-x: hidden;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCROLLBARS — slim, terminal-style
+   ═══════════════════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-light); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAILWIND THEME EXTENSION
+   ═══════════════════════════════════════════════════════════════════════════ */
+@theme {
+  --font-sans: 'Inter', 'system-ui', 'sans-serif';
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'monospace';
+
+  --color-bg-base:        var(--color-bg-base);
+  --color-surface:        var(--color-bg-surface);
+  --color-surface-2:      var(--color-bg-surface-2);
+  --color-surface-3:      var(--color-bg-surface-3);
+  --color-hover:          var(--color-bg-hover);
+  --color-border:         var(--color-border);
+  --color-border-light:   var(--color-border-light);
+  --color-text-primary:   var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted:     var(--color-text-muted);
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-secondary:var(--color-accent-secondary);
+
+  --color-brand-50:  #E3F2FD;
+  --color-brand-100: #BBDEFB;
+  --color-brand-200: #90CAF9;
+  --color-brand-500: #1E88E5;
+  --color-brand-600: #1565C0;
+  --color-brand-700: #0D47A1;
+  --color-brand-900: #0A2472;
+
+  --color-positive-light: #E8F5E9;
+  --color-positive:       #00C853;
+  --color-positive-dark:  #1B5E20;
+
+  --color-negative-light: #FFEBEE;
+  --color-negative:       #FF1744;
+  --color-negative-dark:  #B71C1C;
+
+  --color-warning-light: #FFF8E1;
+  --color-warning:       #F9A825;
+  --color-warning-dark:  #F57F17;
+
+  --color-chart-candle-up:        #00C853;
+  --color-chart-candle-down:      #FF1744;
+  --color-chart-sma20:            #1E88E5;
+  --color-chart-sma50:            #FF6F00;
+  --color-chart-sma200:           #7B1FA2;
+  --color-chart-ema12:            #00BCD4;
+  --color-chart-ema26:            #E91E63;
+  --color-chart-bollinger-fill:   #1E88E520;
+  --color-chart-bollinger-line:   #1E88E5;
+  --color-chart-rsi:              #7B1FA2;
+  --color-chart-volume:           #546E7A;
+
+  @keyframes flashGreen {
+    0%   { background-color: rgba(0,200,83,0.22); }
+    100% { background-color: transparent; }
+  }
+  @keyframes flashRed {
+    0%   { background-color: rgba(255,23,68,0.22); }
+    100% { background-color: transparent; }
+  }
+  @keyframes slideIn {
+    0%   { transform: translateX(-8px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINANCIAL ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes flashGreen {
+  0%   { background-color: var(--color-positive-dim); }
+  100% { background-color: transparent; }
+}
+@keyframes flashRed {
+  0%   { background-color: var(--color-negative-dim); }
+  100% { background-color: transparent; }
+}
+@keyframes priceTickUp {
+  0%   { transform: translateY(3px); opacity: 0.6; color: var(--color-positive); }
+  100% { transform: translateY(0);   opacity: 1;   color: var(--color-positive); }
+}
+@keyframes priceTickDown {
+  0%   { transform: translateY(-3px); opacity: 0.6; color: var(--color-negative); }
+  100% { transform: translateY(0);    opacity: 1;   color: var(--color-negative); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+@keyframes slideUp {
+  from { transform: translateY(4px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+@keyframes marketTicker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Glass panel */
+.glass {
+  background: rgba(13, 16, 23, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+}
+
+/* Terminal label */
+.terminal-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Price colouring utilities */
+.price-up   { color: var(--color-positive) !important; }
+.price-down { color: var(--color-negative) !important; }
+.price-flat { color: var(--color-text-secondary) !important; }
+
+/* Market chip (index badge) */
+.market-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: var(--color-bg-surface-2);
+  white-space: nowrap;
+  transition: border-color var(--transition-fast);
+}
+.market-chip:hover { border-color: var(--color-border-strong); }
+
+/* Monospace numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: 'JetBrains Mono', monospace;
+}
+.mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #1e88e5 0%, #5c6ef0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow */
+.glow-blue { box-shadow: var(--shadow-glow); }
+
+/* Flash animations */
+.flash-green { animation: flashGreen 350ms ease-out forwards; }
+.flash-red   { animation: flashRed   350ms ease-out forwards; }
+
+/* Number tick */
+.number-tick { animation: slideUp 150ms ease-out; }
+
+/* Status dot */
+.status-dot-pulse { animation: pulse 1.8s ease-in-out infinite; }
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-surface-2) 25%,
+    var(--color-bg-surface-3) 50%,
+    var(--color-bg-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-xs);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCREENER TABLE — Bloomberg compact style
+   ═══════════════════════════════════════════════════════════════════════════ */
+.screener-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.screener-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-bg-surface-2);
+  border-bottom: 1px solid var(--color-border-strong);
+  user-select: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.screener-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+/* Alternating row shading */
+.screener-table tbody tr:nth-child(even) {
+  background-color: rgba(255,255,255,0.013);
+}
+
+.screener-table tbody tr:hover {
+  background-color: var(--color-bg-hover) !important;
+}
+
+/* Left-border flash on price changes */
+.screener-table tbody tr.row-flash-up {
+  border-left: 2px solid var(--color-positive);
+}
+.screener-table tbody tr.row-flash-down {
+  border-left: 2px solid var(--color-negative);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESIZE HANDLE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.resize-handle {
+  position: absolute;
+  right: 0;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  cursor: col-resize;
+  background: var(--color-border);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+.resize-handle:hover,
+.resize-handle.isResizing {
+  background: var(--color-accent-primary);
+  opacity: 1;
+  width: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHART CONTAINER
+   ═══════════════════════════════════════════════════════════════════════════ */
+.chart-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIDEBAR — Terminal panel
+   ═══════════════════════════════════════════════════════════════════════════ */
+.sidebar-panel {
+  background: var(--color-bg-pane);
+  border-right: 1px solid var(--color-border);
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: background-color var(--transition-slow), border-color var(--transition-slow);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOCUS STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 1px solid var(--color-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHART TOOLTIP
+   ═══════════════════════════════════════════════════════════════════════════ */
+.chart-tooltip {
+  background: var(--color-bg-surface-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  box-shadow: var(--shadow-md);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TERMINAL INPUT STYLE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.terminal-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  color: var(--color-text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 4px 2px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.terminal-input:focus {
+  border-bottom-color: var(--color-accent-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .sidebar-panel {
+    position: fixed;
+    z-index: 50;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform var(--transition-slow);
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar-panel.open {
+    transform: translateX(0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT / PDF EXPORT
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media print {
+  body * { visibility: hidden; }
+  .chart-modal, .chart-modal * { visibility: visible; }
+  .chart-modal {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print { display: none !important; }
 }
